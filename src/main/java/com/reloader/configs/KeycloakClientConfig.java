@@ -11,10 +11,15 @@ public class KeycloakClientConfig {
     @Value("${keycloak.resource}")
     private String keyCloakResource;
 
+    @Value("${keycloak.auth-server-url}")
+    private String keycloakServer;
+
+
+
     @Bean
     public Keycloak getKeycloak() {
         Keycloak keycloak = Keycloak.getInstance(
-                "http://localhost:8180/auth",
+                keycloakServer,
                 "ultimate-reloader-realm",
                 "admin", // Change to your admin name
                 "admin", // Change to your admin password
