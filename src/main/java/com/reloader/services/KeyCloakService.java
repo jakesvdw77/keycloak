@@ -4,6 +4,7 @@ import com.reloader.error.AuthorizationError;
 import com.reloader.error.KeycloakError;
 import com.reloader.error.UserExistsException;
 import com.reloader.error.UserNotFoundException;
+import com.reloader.logger.MessageLogger;
 import com.reloader.models.LoginUser;
 import com.reloader.models.NewUser;
 import com.reloader.models.UserProfileDTO;
@@ -13,6 +14,7 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,12 +25,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
 import javax.ws.rs.core.Response;
 import java.util.*;
 
 @Service
 public class KeyCloakService {
+
+    @Autowired
+    private MessageLogger messageLogger;
 
     private final RestTemplate restTemplate;
 
@@ -53,6 +57,7 @@ public class KeyCloakService {
 
     public UserProfileDTO authenticate(LoginUser loginUser) {
 
+        messageLogger.LogMessage(this.getClass().getName(), "authenticate", "1.1", "Authenticate User");
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.put("client_id", Arrays.asList(keyCloakResource));
         map.put("password", Arrays.asList(loginUser.getPassword()));
@@ -70,21 +75,31 @@ public class KeyCloakService {
             userProfileDTO.setToken(result.get("access_token").toString());
             userProfileDTO.setExpires(Long.parseLong(result.get("expires_in").toString()));
 
+            messageLogger.LogMessage(this.getClass().getName(), "authenticate", "1.1.1", "Authenticate Success",userProfileDTO);
+
             return userProfileDTO;
         } catch (HttpClientErrorException err) {
             if (err.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+
+                messageLogger.LogError(this.getClass().getName(), "authenticate", "1.2", err.getMessage(), loginUser);
                 throw new AuthorizationError("Email or Password is incorrect");
 
             } else if (err.getStatusCode() == HttpStatus.BAD_REQUEST) {
+
+                messageLogger.LogError(this.getClass().getName(), "authenticate", "1.3", err.getMessage(), loginUser);
                 throw new KeycloakError(err.getMessage());
             }
+
+            messageLogger.LogError(this.getClass().getName(), "authenticate", "1.4", err.getMessage());
             throw new UserNotFoundException(err.getMessage());
         } catch (Exception err) {
 
+            messageLogger.LogError(this.getClass().getName(), "authenticate", "1.5", err.getMessage());
             throw new UserNotFoundException(err.getMessage());
         }
 
     }
+
 
     public void createUser(NewUser newUser) {
         UserRepresentation user = new UserRepresentation();

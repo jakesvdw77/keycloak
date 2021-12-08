@@ -14,17 +14,25 @@ public class KeycloakClientConfig {
     @Value("${keycloak.auth-server-url}")
     private String keycloakServer;
 
+    @Value("${keycloak.realm}")
+    private String keyCloakRealm;
+
+
+    @Value("${admin.keycloak.user}")
+    private String user;
+
+    @Value("${admin.keycloak.pwd}")
+    private String pwd;
 
 
     @Bean
     public Keycloak getKeycloak() {
         Keycloak keycloak = Keycloak.getInstance(
                 keycloakServer,
-                "ultimate-reloader-realm",
-                "admin", // Change to your admin name
-                "admin", // Change to your admin password
-                "reloader-mananagement",
-                "6032e00f-a343-47dd-97aa-68f9f6b353d7");
+                keyCloakRealm,
+                user, // Change to your admin name
+                pwd, // Change to your admin password
+                keyCloakResource);
 
         return keycloak;
     }

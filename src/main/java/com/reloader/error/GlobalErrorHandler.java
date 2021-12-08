@@ -1,5 +1,6 @@
 package com.reloader.error;
 
+
 import com.reloader.models.ResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.Set;
 @Slf4j
 @ControllerAdvice(annotations = RestController.class)
 public class GlobalErrorHandler {
+
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public final ResponseEntity<Object> handleUserNotFound(UserNotFoundException exception) {
